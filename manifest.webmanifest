@@ -1,0 +1,9 @@
+{
+  "name": "Carpool Dismissal",
+  "short_name": "Carpool",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#032B43",
+  "theme_color": "#032B43",
+  "icons": []
+}

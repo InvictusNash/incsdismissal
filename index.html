@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#032B43">
+  <title>Carpool Dismissal</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="lockScreen" class="lock-screen">
+    <section class="lock-card">
+      <div class="eyebrow">Secure Access</div>
+      <h1>Carpool Dismissal</h1>
+      <p>Enter the 4-digit staff PIN to continue.</p>
+      <input id="pinInput" class="pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
+      <button id="unlockBtn" class="primary-btn">Unlock</button>
+      <button id="deviceSetupToggle" class="setup-link" type="button">Device setup</button>
+      <div id="deviceSetup" class="device-setup hidden">
+        <label>Apps Script Web App URL<input id="lockApiUrl" type="text" placeholder="https://script.google.com/macros/s/.../exec"></label>
+        <label>Spreadsheet ID<input id="lockSpreadsheetId" type="text"></label>
+        <button id="saveDeviceSetupBtn" class="ghost-btn" type="button">Save Device Setup</button>
+      </div>
+      <div id="lockMessage" class="message"></div>
+    </section>
+  </div>
+
+  <div id="app" class="locked">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">Dismissal System</div>
+        <h1 id="schoolName">Carpool Dismissal</h1>
+      </div>
+      <nav class="nav">
+        <button data-view="entry">Entry</button>
+        <button data-view="display">Display</button>
+        <button data-view="queue">Queue</button>
+        <button data-view="community">Community</button>
+        <button data-view="admin">Admin</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="entryView" class="view entry-layout">
+        <section class="panel student-panel">
+          <div class="panel-header">
+            <h2>Find Student</h2>
+            <span id="studentCount" class="pill">0 loaded</span>
+          </div>
+          <input id="studentSearch" class="search-input" type="text" placeholder="Search name or card number" autocomplete="off">
+          <div id="studentResults" class="student-results"></div>
+        </section>
+
+        <section class="panel keypad-panel">
+          <div class="panel-header">
+            <h2>Call Car</h2>
+            <button id="clearBtn" class="ghost-btn">Clear</button>
+          </div>
+          <div class="display-screen">
+            <div id="displayNumber" class="display-number">---</div>
+            <div id="displayStudent" class="display-student">No student selected</div>
+            <div id="displayRow" class="display-row"></div>
+          </div>
+          <div class="number-pad" aria-label="number pad">
+            <button>1</button><button>2</button><button>3</button>
+            <button>4</button><button>5</button><button>6</button>
+            <button>7</button><button>8</button><button>9</button>
+            <button data-action="backspace">⌫</button><button>0</button><button data-action="clear">C</button>
+          </div>
+          <div class="row-buttons">
+            <button data-row="ONE">Row 1</button>
+            <button data-row="TWO">Row 2</button>
+          </div>
+          <button id="submitPickupBtn" class="primary-btn">Submit Pickup</button>
+          <div id="entryMessage" class="message"></div>
+        </section>
+
+        <section class="panel recent-panel">
+          <div class="panel-header">
+            <h2>Recent</h2>
+            <button id="refreshRecentBtn" class="ghost-btn">Refresh</button>
+          </div>
+          <div id="recentList" class="recent-list empty">No pickups yet</div>
+        </section>
+      </section>
+
+      <section id="displayView" class="view display-view">
+        <div id="popup" class="pickup-popup hidden">
+          <div id="popupName"></div>
+          <div id="popupMeta"></div>
+        </div>
+        <div class="display-grid">
+          <section class="display-column">
+            <h2>ROW 1</h2>
+            <div id="displayRowOne" class="big-list"></div>
+          </section>
+          <section class="display-column">
+            <h2>ROW 2</h2>
+            <div id="displayRowTwo" class="big-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="queueView" class="view">
+        <section class="panel wide-panel">
+          <div class="panel-header">
+            <h2>Active Queue</h2>
+            <button id="refreshQueueBtn" class="ghost-btn">Refresh</button>
+          </div>
+          <div id="queueList" class="queue-list empty">No active pickups</div>
+        </section>
+      </section>
+
+      <section id="communityView" class="view community-view">
+        <section class="panel wide-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Community View</h2>
+              <p class="subtle">Teachers can leave this open and only see alerts for their community.</p>
+            </div>
+            <button id="enableSoundBtn" class="ghost-btn">Enable Buzz</button>
+          </div>
+          <div class="form-grid compact">
+            <label>Community<select id="communitySelect"></select></label>
+          </div>
+          <div id="communityCurrent" class="community-current empty">Choose a community.</div>
+          <div id="communityList" class="queue-list empty">No active pickups for this community</div>
+        </section>
+      </section>
+
+      <section id="adminView" class="view">
+        <section class="panel wide-panel">
+          <div class="panel-header"><h2>Configuration</h2></div>
+          <div class="form-grid">
+            <label>School Name<input id="settingSchoolName" type="text" value="Carpool Dismissal"></label>
+            <label>Apps Script Web App URL<input id="settingApiUrl" type="text" placeholder="https://script.google.com/macros/s/.../exec"></label>
+            <label>Spreadsheet ID<input id="settingSpreadsheetId" type="text"></label>
+            <label>Students Sheet<input id="settingStudentsSheet" type="text" value="Students"></label>
+            <label>Pickups Sheet<input id="settingPickupsSheet" type="text" value="Pickups"></label>
+            <label>Communities Sheet<input id="settingCommunitiesSheet" type="text" value="Communities"></label>
+            <label>Display Poll Seconds<input id="settingPollSeconds" type="number" min="1" value="2"></label>
+            <label>Popup Seconds<input id="settingPopupSeconds" type="number" min="1" value="3"></label>
+            <label>Device Name<input id="settingDeviceName" type="text" placeholder="Front iPad, Display TV, etc."></label>
+            <label>App PIN<input id="settingAppPin" type="text" inputmode="numeric" maxlength="4" placeholder="4-digit PIN"></label>
+          </div>
+          <div class="button-row">
+            <button id="saveSettingsBtn" class="primary-btn">Save Settings</button>
+            <button id="setupSheetsBtn" class="ghost-btn">Create/Check Sheets</button>
+            <button id="testApiBtn" class="ghost-btn">Test Connection</button>
+            <button id="reloadStudentsBtn" class="ghost-btn">Reload Data</button>
+          </div>
+          <div id="adminMessage" class="message"></div>
+          <div class="admin-note">
+            <strong>Spreadsheet tabs:</strong> Students, Pickups, Communities, Settings. Community colors come from the Communities tab. The staff PIN is stored in Settings as AppPin, so you can change it there or from this Admin page.
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
